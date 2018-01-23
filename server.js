@@ -30,7 +30,7 @@ app.get("/urls/:id", (req, res) => {
 
 
 app.get("/u/:shortURL", (req, res) => {
-  // let longURL = ...
+  let longURL = urlDatabase[req.params.shortURL];;
   res.redirect(longURL);
 });
 
@@ -43,7 +43,6 @@ app.post("/urls", (req, res) => {
   console.log(randomString);
   console.log(req.body.longURL);
   console.log(urlDatabase);
-  // res.send("Ok");         // Respond with 'Ok' (we will replace this)
   res.redirect(301, `http://localhost:8080/urls/${randomString}`);
 });
 
