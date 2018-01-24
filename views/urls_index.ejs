@@ -5,12 +5,16 @@
   <title>TinyApp</title>
 </head>
 <%- include('partials/_header') %>
-<body>
-  <h2>Test Display</h2>
-  <ul>
-    <% for (key in urls) { %>
+  <body>
+    <h2>Test Display</h2>
+    <ul>
+      <% for (key in urls) { %>
       <li><%= key %> - <%= urls[key] %></li>
-    <% };  %>
-  </ul>
-</body>
+      <form method="POST" action="/urls/<%= key %>/delete">
+        <input type="submit" value="Delete">
+      </form>
+      <% };  %>
+    </ul>
+    <a href="/urls/new"> Click to create a new link</a>
+  </body>
 </html>
