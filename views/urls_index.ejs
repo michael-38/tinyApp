@@ -4,7 +4,7 @@
 <head>
   <title>TinyApp</title>
 </head>
-<%- include('partials/_header') %>
+<% include partials/_header %>
   <body>
     <h2>Test Display</h2>
     <ul>
@@ -12,6 +12,9 @@
       <li><%= key %> - <%= urls[key] %></li>
       <form method="POST" action="/urls/<%= key %>/delete">
         <input type="submit" value="Delete">
+      </form>
+      <form method="POST" action="/urls/<%= key %>">
+        <input type="submit" value="Edit">
       </form>
       <% };  %>
     </ul>

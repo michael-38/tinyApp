@@ -1,6 +1,24 @@
-<!DOCTYPE html>
 
 <header>Header1</header>
-<body>
+
   <h2>Header</h2>
-</body>
+  <h2><%= username %></h2>
+
+  <% if(username) { %>
+
+  <form method="POST" action="/logout">
+    <input type="submit" value="Log out">
+  </form>
+
+  <% } else { %>
+
+  <form method="POST" action="/login">
+    <input type="text" name="username" placeholder="username">
+    <input type="submit" value="Sign in">
+
+  </form>
+  <% } %>
+
+
+
+
