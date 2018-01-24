@@ -22,11 +22,11 @@ app.get("/urls/new", (req, res) => {
 });
 
 
-app.get("/urls/:id", (req, res) => {
-  let templateVars = { shortURL: req.params.id };
-  // console.log(templateVars);
-  res.render("urls_show", templateVars);
-});
+// app.get("/urls/:id", (req, res) => {
+//   let templateVars = { shortURL: req.params.id };
+//   // console.log(templateVars);
+//   res.render("urls_show", templateVars);
+// });
 
 
 app.get("/u/:shortURL", (req, res) => {
@@ -35,17 +35,27 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  // console.log(req);
+  console.log(req.params.id);
+  console.log(urlDatabase);
+  console.log("app post id/delete");
+  res.redirect("/urls");
+});
+
 app.post("/urls", (req, res) => {
   // add new key-value pair to urlDatabase
   randomString = exportedFunctions.generateRandomString();
   urlDatabase[randomString] = req.body.longURL;
 
-  console.log(randomString);
-  console.log(req.body.longURL);
+  // console.log(randomString);
+  // console.log(req.body.longURL);
   console.log(urlDatabase);
-  res.redirect(301, `http://localhost:8080/urls/${randomString}`);
+  let templateVars = { urls: urlDatabase };
+  res.render("urls_index", templateVars);
+  // res.redirect(301, `http://localhost:8080/urls/${randomString}`);
 });
-
 
 
 
