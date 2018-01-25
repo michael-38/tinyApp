@@ -1,10 +1,11 @@
 
-<header>Header1</header>
+<header>Home Page</header>
 
-  <h2>Header</h2>
-  <h2><%= username %></h2>
 
-  <% if(username) { %>
+
+  <% if(user) { %>
+  <h2>Welcome, <%= user %></h2>
+
 
   <form method="POST" action="/logout">
     <input type="submit" value="Log out">
@@ -12,13 +13,9 @@
 
   <% } else { %>
 
-  <form method="POST" action="/login">
-    <input type="text" name="username" placeholder="username">
+  <form method="GET" action="/login">
     <input type="submit" value="Sign in">
-
-  </form>
   <% } %>
-
 
 
 

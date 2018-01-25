@@ -6,14 +6,14 @@
 </head>
 <% include partials/_header %>
   <body>
-    <h2>Test Display</h2>
+    <h2>Home</h2>
     <ul>
-      <% for (key in urls) { %>
-      <li><%= key %> - <%= urls[key] %></li>
-      <form method="POST" action="/urls/<%= key %>/delete">
+      <% for (urls in allURL) { %>
+      <li><%= urls %> - <%= allURL[urls] %></li>
+      <form method="POST" action="/urls/<%= urls %>/delete">
         <input type="submit" value="Delete">
       </form>
-      <form method="POST" action="/urls/<%= key %>">
+      <form method="POST" action="/urls/<%= urls %>">
         <input type="submit" value="Edit">
       </form>
       <% };  %>
