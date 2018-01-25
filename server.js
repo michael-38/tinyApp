@@ -39,62 +39,27 @@ const allUsers = {
 Middleware
 */
 
-// function checkUser(req, res, next) {
-//   if (req.path = "/login" || req.path = "/register") {
-//     next ()
-//     return
-//   }
-//   const currentUser = req.signedCookies.current_user
-//   if (currentUser) {
-//     req.currentUser = currentUser
-//     next ()
-//   }
-//   else {
-//     res.redirect("/login");
-//   }
-// }
-
-
-// app.use(checkUser)
 
 
 /*
-Routes
+GET Routes
 */
 
 
-function findUserEmail(userEmail) {
-  for (user in allUsers) {
-    if (allUser[user].email === userEmail) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-}
 
 
 app.get("/", (req, res) => {
-  console.log(req.cookies.user_id);
   let current_user = req.cookies.user_id
   if (current_user) {
     res.redirect("/urls");
   }
   else {
-    res.render("urls_login")
+    res.redirect("/login")
   }
 })
 
 
-// if (findUsername(req.cookies["username"])) {
-//   res.redirect("/urls");
-//   } else {
-//     res.redirect("/login");
-//   }
-// }
-
 app.get("/urls", (req, res) => {
-  // console.log(allUsers[req.cookies.user_id].email);
   let templateVars = {
   allURL: allURL ,
   user: allUsers[req.cookies.user_id]
@@ -103,11 +68,18 @@ app.get("/urls", (req, res) => {
 })
 
 app.get("/urls/new", (req, res) => {
-  let templateVars = {  ////declare a variable (which is an object)
+  for (user in allUsers) {
+    if (user = req.cookies.user_id) {
+    let templateVars = {  ////declare a variable (which is an object)
     urls: [req.params.id,allURL[req.params.id]], // with key "urls" that contains an array that consists of the shortURL random string (:id) and its corresponding original URL in urlDatabase
     user: allUsers[req.cookies.user_id]
-    };
+  };
   res.render("urls_new", templateVars); //render the urls_new ejs/html page when a request to /urls/new is received
+  return;
+} else {
+  res.status(403).send("unauthorized access");
+}
+}
 });
 
 app.get("/u/:shortURL", (req, res) => {
@@ -120,11 +92,14 @@ app.get("/login", (req, res) => {
 })
 
 app.get("/register", (req, res) => { //GET route for registration page
-  console.log("landed on /register");
   res.render("urls_register"); // render the url_register ejs/html page when a request to /urls/new is received
 });
 
 
+
+/*
+POST Routes
+*/
 
 app.post("/register", (req, res) => {
   let emailConflict = 0;
@@ -152,6 +127,53 @@ app.post("/register", (req, res) => {
 });
 
 
+
+
+function findUserVerifyPassword (userEmail, password) {
+  for (user in allUsers) {
+    if (allUsers[user].email === userEmail && allUsers[user].password === password) {
+      return allUsers[user]
+    }
+  }
+  return false
+}
+
+app.post("/login", (req, res) => {
+
+if((req.body.login_email.length === 0) || (req.body.login_password.length === 0)) {
+    res.status(400).send("Please enter an email address/password");
+  }
+const userEmail = req.body.login_email
+const password = req.body.login_password
+
+const user = findUserVerifyPassword(userEmail, password);
+
+if (user) {
+  // add coookie and redirect
+  res.cookie("user_id", user.id);
+  res.redirect("/urls");
+} else {
+  // 401 error
+  res.status(401).send("User not found/password incorrect");
+}
+});
+
+
+
+
+
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("user_id");  //clear username cookie
+  res.redirect("/login");
+});
+
+app.post("/urls/new", (req, res) => { //POST route when user clicks Submit button on the urls_new page to create a new short URL
+  randomString = exportedFunctions.generateRandomString(); //declare a variable with a randomly generated string
+  allURL[randomString] = req.body.longURL; // add new key-value pair to urlDatabase
+  res.redirect("/urls");
+});
+
 app.post("/urls/:id", (req, res) => {
   let templateVars = {
     urls: [req.params.id, allURL[req.params.id]],
@@ -170,34 +192,8 @@ app.post("/urls/:id/delete", (req, res) => { //POST route when a user clicks Del
   res.redirect("/urls"); //redirect to the /urls (home) page
 });
 
-app.post("/urls/new", (req, res) => { //POST route when user clicks Submit button on the urls_new page to create a new short URL
-  randomString = exportedFunctions.generateRandomString(); //declare a variable with a randomly generated string
-  allURL[randomString] = req.body.longURL; // add new key-value pair to urlDatabase
-  res.redirect("/urls");
-});
 
 
-app.post("/login", (req, res) => {
-
-if((req.body.email.length === 0) || (req.body.password.length === 0)) {
-    res.status(400).send("Please enter an email address/password");
-  }
-
-const username = req.body.username
-const password = req.body.password
-
-const user = allUsers.find((user))
-
-
-
-  res.cookie("user_id", req.body.user_id);
-  res.redirect("/urls");
-});
-
-app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");  //clear username cookie
-  res.redirect("/login");
-});
 
 app.listen(PORT, () => {
   console.log(`Currently listening on port ${PORT}!`); //to indicate server is listening to the correct port
