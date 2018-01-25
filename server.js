@@ -32,19 +32,25 @@ const users = {
 
 
 app.get("/urls", (req, res) => {
+  if (req.cookies["username"]) {
   let templateVars = {  //declare a variable that is an object
     urls: urlDatabase, //containing an object with key as urls and value as urlDatabase
     // username: req.cookies["username"] //containing another object with key as username and value as req.cookies["username"]
-    users: users
+    users: users[req.cookies["username"]]
    };
+   console.log(req.cookies["username"]);
+   console.log(req.cookies);
   res.render("urls_index", templateVars); //render urls_index and passing the ejs/html page with templateVars
-});
+} else {
+  res.status(400).send("Go register");
+}
+})
 
 app.get("/urls/new", (req, res) => {
   let templateVars = {  ////declare a variable (which is an object)
     urls: [req.params.id,urlDatabase[req.params.id]], // with key "urls" that contains an array that consists of the shortURL random string (:id) and its corresponding original URL in urlDatabase
     // username: req.cookies["username"] //containing an object with key as username and value as req.cookies["username"]
-    users: users
+    users: users[req.cookies["username"]]
     };
   res.render("urls_new", templateVars); //render the urls_new ejs/html page when a request to /urls/new is received
 });
@@ -67,7 +73,6 @@ app.post("/register", (req, res) => {
       emailConflict += 1;
     }
   }
-
   if((req.body.email.length === 0) || (req.body.password.length === 0)) {
     res.status(400).send("Please enter an email address/password");
   } else if (emailConflict > 0) {
@@ -83,7 +88,7 @@ app.post("/register", (req, res) => {
   res.cookie("username", randomID); //set new username cookie
   console.log(users);
   res.redirect("/urls");
-}
+    }
 });
 
 
