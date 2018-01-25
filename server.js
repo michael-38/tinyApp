@@ -17,9 +17,15 @@ Database
 
 const allURL =
   {
-    "b2xVn2": "http://www.lighthouselabs.ca",
-    "9sm5xK": "http://www.google.com"
-  };
+    "b2xVn2":
+    { longURL: "http://www.lighthouselabs.ca",
+      id: "user1RandomID"
+    },
+    "9sm5xK":
+    { longURL: "http://www.google.com",
+      id: "user2RandomID"
+  }
+};
 
 const allUsers = {
   "user1RandomID" : {
@@ -60,11 +66,18 @@ app.get("/", (req, res) => {
 
 
 app.get("/urls", (req, res) => {
+  for (user in allUsers) {
+    if (user = req.cookies.user_id) {
   let templateVars = {
   allURL: allURL ,
   user: allUsers[req.cookies.user_id]
   }
   res.render("urls_index", templateVars)
+  return;
+} else {
+  res.status(403).send("unauthorized access");
+}
+}
 })
 
 app.get("/urls/new", (req, res) => {
@@ -170,7 +183,10 @@ app.post("/logout", (req, res) => {
 
 app.post("/urls/new", (req, res) => { //POST route when user clicks Submit button on the urls_new page to create a new short URL
   randomString = exportedFunctions.generateRandomString(); //declare a variable with a randomly generated string
-  allURL[randomString] = req.body.longURL; // add new key-value pair to urlDatabase
+  allURL[randomString] = {
+    longURL: req.body.longURL,
+    id: req.cookies.user_id
+  };
   res.redirect("/urls");
 });
 
@@ -183,7 +199,10 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/urls/:id/update", (req, res) => { //POST route when user clicks Update button on the urls_show page
-  allURL[req.params.id] = req.body.updatedURL; //update the urlDatabase with the updatedURL a user inputted
+  allURL[req.params.id] = {
+    longURL: req.body.updatedURL,
+    id: req.cookies.user_id
+    }; //update the urlDatabase with the updatedURL a user inputted
   res.redirect("/urls"); //redirect to the /urls (home) page
 });
 
