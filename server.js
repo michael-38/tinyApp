@@ -17,10 +17,25 @@ var urlDatabase = {
 };
 
 
+const users = {
+  "user1RandomID": {
+    id: "user1RandomID",
+    email: "user1@example.com",
+    password: "1111"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "2222"
+  }
+}
+
+
 app.get("/urls", (req, res) => {
   let templateVars = {  //declare a variable that is an object
     urls: urlDatabase, //containing an object with key as urls and value as urlDatabase
-    username: req.cookies["username"] //containing another object with key as username and value as req.cookies["username"]
+    // username: req.cookies["username"] //containing another object with key as username and value as req.cookies["username"]
+    users: users
    };
   res.render("urls_index", templateVars); //render urls_index and passing the ejs/html page with templateVars
 });
@@ -28,7 +43,8 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   let templateVars = {  ////declare a variable (which is an object)
     urls: [req.params.id,urlDatabase[req.params.id]], // with key "urls" that contains an array that consists of the shortURL random string (:id) and its corresponding original URL in urlDatabase
-    username: req.cookies["username"] //containing an object with key as username and value as req.cookies["username"]
+    // username: req.cookies["username"] //containing an object with key as username and value as req.cookies["username"]
+    users: users
     };
   res.render("urls_new", templateVars); //render the urls_new ejs/html page when a request to /urls/new is received
 });
@@ -39,6 +55,36 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 
+app.get("/register", (req, res) => { //GET route for registration page
+  console.log("landed on /register");
+  res.render("urls_register"); // render the url_register ejs/html page when a request to /urls/new is received
+});
+
+app.post("/register", (req, res) => {
+  let emailConflict = 0;
+  for (accounts in users) {
+    if (req.body.email === users[accounts].email) {
+      emailConflict += 1;
+    }
+  }
+
+  if((req.body.email.length === 0) || (req.body.password.length === 0)) {
+    res.status(400).send("Please enter an email address/password");
+  } else if (emailConflict > 0) {
+    res.status(400).send("Email already in use");
+  } else {
+    randomID = exportedFunctions.generateRandomString();
+    users[randomID] = {
+      id: randomID,
+      email: req.body.email,
+      password: req.body.password
+    }
+  res.clearCookie("username");  //clear username cookie
+  res.cookie("username", randomID); //set new username cookie
+  console.log(users);
+  res.redirect("/urls");
+}
+});
 
 
 app.post("/urls/:id", (req, res) => {
@@ -52,43 +98,29 @@ app.post("/urls/:id", (req, res) => {
 app.post("/urls/:id/update", (req, res) => { //POST route when user clicks Update button on the urls_show page
   urlDatabase[req.params.id] = req.body.updatedURL; //update the urlDatabase with the updatedURL a user inputted
   res.redirect("/urls"); //redirect to the /urls (home) page
-})
+});
 
 app.post("/urls/:id/delete", (req, res) => { //POST route when a user clicks Delete button on the urls_index (home) page
   delete urlDatabase[req.params.id]; //delete an entry from urlDatabase
   res.redirect("/urls"); //redirect to the /urls (home) page
 });
 
-
-app.post("/logout", (req, res) => {
-  res.clearCookie("username");  //clear cookies
-  res.redirect("/urls");
-})
-
-
 app.post("/urls", (req, res) => { //POST route when user clicks Submit button on the urls_new page to create a new short URL
   randomString = exportedFunctions.generateRandomString(); //declare a variable with a randomly generated string
   urlDatabase[randomString] = req.body.longURL; // add new key-value pair to urlDatabase
-  let templateVars = {  //declare a variable that is an object
-    urls: urlDatabase, //containing an object with key as urls and value as urlDatabase
-    username: req.cookies["username"] //containing another object with key as username and value as req.cookies["username"]
-   };
-  res.render("urls_index", templateVars); //render urls_index and passing the ejs/html page with templateVars
+  res.redirect("/urls");
 });
-
 
 app.post("/login", (req, res) => {
   res.cookie("username", req.body.username);
-  let templateVars = {  //declare a variable that is an object
-    urls: urlDatabase, //containing an object with key as urls and value as urlDatabase
-    username: req.cookies["username"] //containing another object with key as username and value as req.cookies["username"]
-   };
-  // res.render("urls_index", templateVars);
   res.redirect("/urls");
-})
+});
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("username");  //clear username cookie
+  res.redirect("/urls");
+});
 
 app.listen(PORT, () => {
   console.log(`Currently listening on port ${PORT}!`); //to indicate server is listening to the correct port
 });
-
-//test
