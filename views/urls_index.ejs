@@ -9,7 +9,7 @@
     <h2>Home</h2>
     <ul>
       <% for (urls in allURL) { %>
-      <li><%= urls %> - <%= allURL[urls] %></li>
+      <li><%= urls %> - <%= allURL[urls].longURL %></li>
       <form method="POST" action="/urls/<%= urls %>/delete">
         <input type="submit" value="Delete">
       </form>

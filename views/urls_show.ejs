@@ -12,7 +12,7 @@
     <p><strong>ShortURL: <%= urls[0] %></strong></p>
 
   <form action="/urls/<%= urls[0] %>/update" method="POST" style="margin:150px;">
-    <input id="newURL" type="text" value=<%= urls[1] %> name="updatedURL" style="width: 300px">
+    <input id="newURL" type="text" value=<%= urls[1].longURL %> name="updatedURL" style="width: 300px">
     <input type="submit" value="Update">
   </form>
 </body>
