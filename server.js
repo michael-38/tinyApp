@@ -97,7 +97,7 @@ app.get("/urls", (req, res) => {
   // console.log(allUsers[req.cookies.user_id].email);
   let templateVars = {
   allURL: allURL ,
-  user: allUsers[req.cookies.user_id].email
+  user: allUsers[req.cookies.user_id]
   }
   res.render("urls_index", templateVars)
 })
@@ -105,7 +105,7 @@ app.get("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   let templateVars = {  ////declare a variable (which is an object)
     urls: [req.params.id,allURL[req.params.id]], // with key "urls" that contains an array that consists of the shortURL random string (:id) and its corresponding original URL in urlDatabase
-    user: allUsers[req.cookies.user_id].email
+    user: allUsers[req.cookies.user_id]
     };
   res.render("urls_new", templateVars); //render the urls_new ejs/html page when a request to /urls/new is received
 });
@@ -155,7 +155,7 @@ app.post("/register", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   let templateVars = {
     urls: [req.params.id, allURL[req.params.id]],
-    user: allUsers[req.cookies.user_id].email
+    user: allUsers[req.cookies.user_id]
     };
   res.render("urls_show", templateVars);
 });

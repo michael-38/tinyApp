@@ -3,8 +3,8 @@
 
 
 
-  <% if(user) { %>
-  <h2>Welcome, <%= user %></h2>
+  <% if(user.email) { %>
+  <h2>Welcome, <%= user.email %></h2>
 
 
   <form method="POST" action="/logout">
