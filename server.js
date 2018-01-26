@@ -2,12 +2,20 @@ const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser')
 const bcrypt = require('bcrypt');
+const cookieSession = require('cookie-session')
 const PORT = process.env.PORT || 8080; // .env file yet to be created
 const bodyParser = require("body-parser");
 const exportedFunctions = require("./app.js");
 
+
+
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser('randomkey_a1b3c5'))
+app.use(cookieSession({
+  name: 'session',
+  keys: [secretkey]
+  maxAge: 60 * 60 * 1000 // 1 hour
+}))
 
 app.set('view engine', 'ejs');
 
@@ -124,14 +132,22 @@ if (allUsers.hasOwnProperty(req.cookies.user_id)) {
 
 
 app.get("/urls/:id", (req, res) => {
-  console.log(urlsForUser(req.cookies.user_id));
-  console.log(req.cookies.user_id);
-  if(req.cookies.user_id === urlsForUser(req.cookies.user_id).id) {
-    res.redirect("/urls:id");
-  } else {
-    res.status(403).send("unauthorized access");
+  let thisUsersURL = urlsForUser(req.cookies.user_id)
+  let templateVars = {
+    urls: [req.params.id, thisUsersURL[req.params.id]],
+    user: thisUsersURL[req.cookies.user_id]
+  };
+
+  for (item in thisUsersURL) {
+    if(req.params.id === item) {
+      res.render("urls_show", templateVars)
+    }
+    else {
+    res.status(403).send("unauthorized access")
+    }
   }
-})
+});
+
 
 
 app.get("/u/:shortURL", (req, res) => {
