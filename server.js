@@ -3,7 +3,7 @@ const app = express();
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
 const cookieSession = require('cookie-session');
-const PORT = process.env.PORT || 8080; // .env file yet to be created
+const PORT = process.env.PORT || 8080;
 const bodyParser = require("body-parser");
 const exportedFunctions = require("./app.js");
 
@@ -54,12 +54,12 @@ const allUsers = {
 
 
 /*
-Middleware
+Middleware/Reusable Functions
 */
 
 
 
-function findUserVerifyPassword(userEmail, password) {
+function findUserVerifyPassword(userEmail, password) { //verify user's identity and password
   for (user in allUsers) {
     if (allUsers[user].email === userEmail && bcrypt.compareSync(password, allUsers[user].password)) {
       return allUsers[user]
@@ -68,7 +68,7 @@ function findUserVerifyPassword(userEmail, password) {
   return false;
 };
 
-function urlsForUser(id) {
+function urlsForUser(id) { //return all URLs created by a specific user
   var filteredURL = {};
   for (url in allURL) {
     if (id === allURL[url].id) {
@@ -87,20 +87,20 @@ GET Routes
 
 
 app.get("/", (req, res) => {
-  if (allUsers.hasOwnProperty(req.session.user_id)) {
+  if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, redirect to home page (/url)
     res.redirect("/urls");
   }
   else {
-    res.redirect("/login")
+    res.redirect("/login") //redirect to login page
   }
 })
 
 
 
 app.get("/urls", (req, res) => {
-  if (allUsers.hasOwnProperty(req.session.user_id)) {
+  if (allUsers.hasOwnProperty(req.session.user_id)) {  //if user is logged in, render home page (/urls)
     let thisUsersURL = urlsForUser(req.session.user_id)
-    let templateVars = {
+    let templateVars = {  //declare a variable (which is an object), to be passed on when rendering "urls_index" and "_header.ejs"
         allURL: thisUsersURL,
         user: allUsers[req.session.user_id]
         }
@@ -114,12 +114,11 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
 
-if (allUsers.hasOwnProperty(req.session.user_id)) {
-    let templateVars = {  ////declare a variable (which is an object)
-    urls: [req.params.id,allURL[req.params.id]], // with key "urls" that contains an array that consists of the shortURL random string (:id) and its corresponding original URL in urlDatabase
-    user: allUsers[req.session.user_id]
+if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, render "urls_new page"
+    let templateVars = {
+    user: allUsers[req.session.user_id] //for rendering heading with correct user email on the "urls_new" page
   };
-  res.render("urls_new", templateVars); //render the urls_new ejs/html page when a request to /urls/new is received
+  res.render("urls_new", templateVars); //render the urls_new page
 } else {
   res.redirect("/login");
 }
@@ -128,13 +127,13 @@ if (allUsers.hasOwnProperty(req.session.user_id)) {
 
 
 app.get("/urls/:id", (req, res) => {
-  let thisUsersURL = urlsForUser(req.session.user_id)
+  let thisUsersURL = urlsForUser(req.session.user_id) //list of URLs that were created by the user
 
   for (item in thisUsersURL) {
-    if(req.params.id === item) {
+    if(req.params.id === item) { //if the link entered in the URL (:id) matches the URL database, then display the page
     let templateVars = {
-      urls: [req.params.id, thisUsersURL[req.params.id]],
-      user: allUsers[req.session.user_id]
+      urls: [req.params.id, thisUsersURL[req.params.id]], //array consisting of the shortURL id and the list of URLs by this user
+      user: allUsers[req.session.user_id] //for rendering heading with correct user email on the "urls_new" page
     };
       res.render("urls_show", templateVars)
     }
@@ -148,15 +147,15 @@ app.get("/u/:shortURL", (req, res) => {
   if (allURL[req.params.shortURL] === undefined) {
     res.status(404).send("Link not found");
   } else {
-  let longURL = allURL[req.params.shortURL].longURL; //declear a variable that references the urlDatabase (an object), with the key req.params.shortURL
-  res.redirect(longURL); //redirect to the original URL
+  let longURL = allURL[req.params.shortURL].longURL; //declear a variable that references the URL database (an object), with the key req.params.shortURL
+  res.redirect(longURL); //redirect to the long URL
   }
 });
 
 
 
 app.get("/login", (req, res) => {
-if (allUsers.hasOwnProperty(req.session.user_id)) {
+if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, render home page (/urls)
     res.redirect("/urls");
   }
   else {
@@ -166,8 +165,8 @@ if (allUsers.hasOwnProperty(req.session.user_id)) {
 
 
 
-app.get("/register", (req, res) => { //GET route for registration page
-if (allUsers.hasOwnProperty(req.session.user_id)) {
+app.get("/register", (req, res) => {
+if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, render home page (/urls)
     res.redirect("/urls");
   }
   else {
@@ -186,11 +185,11 @@ POST Routes
 app.post("/register", (req, res) => {
   let emailConflict = 0;
   for (accounts in allUsers) {
-    if (req.body.email === allUsers[accounts].email) {
+    if (req.body.email === allUsers[accounts].email) { //check if the email being used for registration already exists in the user database
       emailConflict += 1;
     }
   }
-  if((req.body.email.length === 0) || (req.body.password.length === 0)) {
+  if((req.body.email.length === 0) || (req.body.password.length === 0)) { //check if the user entered a blank email or password when registering
     res.status(400).send("Please enter an email address/password");
   } else if (emailConflict > 0) {
     res.status(400).send("Email already in use");
@@ -218,15 +217,13 @@ app.post("/login", (req, res) => {
   const userEmail = req.body.login_email
   const password = req.body.login_password
 
-  const user = findUserVerifyPassword(userEmail, password);
+  const user = findUserVerifyPassword(userEmail, password); //verify user and password
 
   if (user) {
-    // add coookie and redirect
     req.session.user_id = user.id; //set new username cookie
     res.redirect("/urls");
-  } else {
-    // 401 error
-    res.status(401).send("User not found/password incorrect");
+  } else { // 403 error
+    res.status(403).send("User not found/password incorrect");
     }
 });
 
@@ -241,7 +238,7 @@ app.post("/logout", (req, res) => {
 
 
 app.post("/urls/new", (req, res) => { //POST route when user clicks Submit button on the urls_new page to create a new short URL
-  randomString = exportedFunctions.generateRandomString(); //declare a variable with a randomly generated string
+  randomString = exportedFunctions.generateRandomString();
   allURL[randomString] = {
     longURL: req.body.longURL,
     id: req.session.user_id
@@ -265,7 +262,7 @@ app.post("/urls/:id/update", (req, res) => { //POST route when user clicks Updat
   allURL[req.params.id] = {
     longURL: req.body.updatedURL,
     id: req.session.user_id
-    }; //update the urlDatabase with the updatedURL a user inputted
+    }; //update the urlDatabase with the updatedURL the user entered
   res.redirect("/urls"); //redirect to the /urls (home) page
 });
 
