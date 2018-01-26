@@ -46,6 +46,31 @@ Middleware
 */
 
 
+function findUserVerifyPassword(userEmail, password) {
+  for (user in allUsers) {
+    if (allUsers[user].email === userEmail && allUsers[user].password === password) {
+      return allUsers[user]
+    }
+  }
+  return false;
+};
+
+function urlsForUser(id) {
+  var filteredURL = {};
+  for (url in allURL) {
+    // console.log(allURL[url].id);
+    if (id === allURL[url].id) {
+      filteredURL[url] = allURL[url];
+    }
+  }
+  return filteredURL;
+};
+
+
+
+
+
+
 
 /*
 GET Routes
@@ -66,23 +91,25 @@ app.get("/", (req, res) => {
 
 
 app.get("/urls", (req, res) => {
-  for (user in allUsers) {
-    if (user = req.cookies.user_id) {
-  let templateVars = {
-  allURL: allURL ,
-  user: allUsers[req.cookies.user_id]
-  }
+  if (allUsers.hasOwnProperty(req.cookies.user_id)) {
+      console.log("allowed access");
+      let thisUsersURL = urlsForUser(req.cookies.user_id)
+      let templateVars = {
+        allURL: thisUsersURL,
+        user: allUsers[req.cookies.user_id]
+      }
+      console.log(templateVars);
   res.render("urls_index", templateVars)
   return;
 } else {
+  console.log("access denied")
   res.status(403).send("unauthorized access");
-}
 }
 })
 
 app.get("/urls/new", (req, res) => {
-  for (user in allUsers) {
-    if (user = req.cookies.user_id) {
+
+if (allUsers.hasOwnProperty(req.cookies.user_id)) {
     let templateVars = {  ////declare a variable (which is an object)
     urls: [req.params.id,allURL[req.params.id]], // with key "urls" that contains an array that consists of the shortURL random string (:id) and its corresponding original URL in urlDatabase
     user: allUsers[req.cookies.user_id]
@@ -92,11 +119,12 @@ app.get("/urls/new", (req, res) => {
 } else {
   res.status(403).send("unauthorized access");
 }
-}
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  let longURL = allUsers[req.params.shortURL]; //declear a variable that references the urlDatabase (an object), with the key req.params.shortURL
+  console.log(allURL);
+  console.log(req.params.shortURL);
+  let longURL = allURL[req.params.shortURL].longURL; //declear a variable that references the urlDatabase (an object), with the key req.params.shortURL
   res.redirect(longURL); //redirect to the original URL
 });
 
@@ -142,14 +170,7 @@ app.post("/register", (req, res) => {
 
 
 
-function findUserVerifyPassword (userEmail, password) {
-  for (user in allUsers) {
-    if (allUsers[user].email === userEmail && allUsers[user].password === password) {
-      return allUsers[user]
-    }
-  }
-  return false
-}
+
 
 app.post("/login", (req, res) => {
 
