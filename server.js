@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const cookieParser = require('cookie-parser')
+const bcrypt = require('bcrypt');
 const PORT = process.env.PORT || 8080; // .env file yet to be created
 const bodyParser = require("body-parser");
 const exportedFunctions = require("./app.js");
@@ -48,7 +49,7 @@ Middleware
 
 function findUserVerifyPassword(userEmail, password) {
   for (user in allUsers) {
-    if (allUsers[user].email === userEmail && allUsers[user].password === password) {
+    if (allUsers[user].email === userEmail && bcrypt.compareSync(password, allUsers[user].password)) {
       return allUsers[user]
     }
   }
@@ -159,10 +160,11 @@ app.post("/register", (req, res) => {
       {
         id: randomID,
         email: req.body.email,
-        password: req.body.password
+        password: bcrypt.hashSync(req.body.password, 10)
       }
   res.clearCookie("user_id");  //clear username cookie
   res.cookie("user_id", randomID); //set new username cookie
+  console.log(allUsers);
   res.redirect("/urls");
     }
 });
@@ -191,7 +193,6 @@ if (user) {
   res.status(401).send("User not found/password incorrect");
 }
 });
-
 
 
 
