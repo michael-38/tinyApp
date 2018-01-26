@@ -1,28 +1,30 @@
 const express = require('express');
 const app = express();
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
-const cookieSession = require('cookie-session')
+const cookieSession = require('cookie-session');
 const PORT = process.env.PORT || 8080; // .env file yet to be created
 const bodyParser = require("body-parser");
 const exportedFunctions = require("./app.js");
 
 
-
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser('randomkey_a1b3c5'))
+app.use(cookieParser('randomkey_a1b3c5'));
 app.use(cookieSession({
   name: 'session',
   keys: ['secretkey'],
   maxAge: 60 * 60 * 1000 // 1 hour
-}))
+}));
 
 app.set('view engine', 'ejs');
+
 
 
 /*
 Database
 */
+
+
 
 const allURL =
   {
@@ -50,9 +52,11 @@ const allUsers = {
 };
 
 
+
 /*
 Middleware
 */
+
 
 
 function findUserVerifyPassword(userEmail, password) {
@@ -67,15 +71,12 @@ function findUserVerifyPassword(userEmail, password) {
 function urlsForUser(id) {
   var filteredURL = {};
   for (url in allURL) {
-    // console.log(allURL[url].id);
     if (id === allURL[url].id) {
       filteredURL[url] = allURL[url];
     }
   }
   return filteredURL;
 };
-
-
 
 
 
@@ -95,8 +96,8 @@ app.get("/", (req, res) => {
 })
 
 
+
 app.get("/urls", (req, res) => {
-  console.log(allUsers);
   if (allUsers.hasOwnProperty(req.session.user_id)) {
     let thisUsersURL = urlsForUser(req.session.user_id)
     let templateVars = {
@@ -108,6 +109,7 @@ app.get("/urls", (req, res) => {
     res.status(403).send("unauthorized access");
   }
 });
+
 
 
 app.get("/urls/new", (req, res) => {
@@ -122,6 +124,7 @@ if (allUsers.hasOwnProperty(req.session.user_id)) {
   res.redirect("/login");
 }
 });
+
 
 
 app.get("/urls/:id", (req, res) => {
@@ -142,17 +145,35 @@ app.get("/urls/:id", (req, res) => {
 
 
 app.get("/u/:shortURL", (req, res) => {
+  if (allURL[req.params.shortURL] === undefined) {
+    res.status(404).send("Link not found");
+  } else {
   let longURL = allURL[req.params.shortURL].longURL; //declear a variable that references the urlDatabase (an object), with the key req.params.shortURL
   res.redirect(longURL); //redirect to the original URL
+  }
 });
+
+
 
 app.get("/login", (req, res) => {
-  res.render("urls_login");
+if (allUsers.hasOwnProperty(req.session.user_id)) {
+    res.redirect("/urls");
+  }
+  else {
+    res.render("urls_login")
+  }
 })
 
+
+
 app.get("/register", (req, res) => { //GET route for registration page
-  res.render("urls_register"); // render the url_register ejs/html page when a request to /urls/new is received
-});
+if (allUsers.hasOwnProperty(req.session.user_id)) {
+    res.redirect("/urls");
+  }
+  else {
+    res.render("urls_register")
+  }
+})
 
 
 
@@ -160,11 +181,11 @@ app.get("/register", (req, res) => { //GET route for registration page
 POST Routes
 */
 
+
+
 app.post("/register", (req, res) => {
   let emailConflict = 0;
   for (accounts in allUsers) {
-    console.log("req.body.email: ", req.body.email);
-    console.log("accounts.email: ", allUsers[accounts].email);
     if (req.body.email === allUsers[accounts].email) {
       emailConflict += 1;
     }
@@ -181,7 +202,8 @@ app.post("/register", (req, res) => {
         email: req.body.email,
         password: bcrypt.hashSync(req.body.password, 10)
       }
-  res.clearCookie("user_id");  //clear username cookie
+  res.clearCookie("session");  //clear username cookie
+  res.clearCookie("session.sig");  //clear username cookie
   req.session.user_id = randomID; //set new username cookie
   res.redirect("/urls");
     }
@@ -189,37 +211,34 @@ app.post("/register", (req, res) => {
 
 
 
-
-
-
 app.post("/login", (req, res) => {
-
-if((req.body.login_email.length === 0) || (req.body.login_password.length === 0)) {
-    res.status(400).send("Please enter an email address/password");
+  if((req.body.login_email.length === 0) || (req.body.login_password.length === 0)) {
+      res.status(400).send("Please enter an email address/password");
   }
-const userEmail = req.body.login_email
-const password = req.body.login_password
+  const userEmail = req.body.login_email
+  const password = req.body.login_password
 
-const user = findUserVerifyPassword(userEmail, password);
+  const user = findUserVerifyPassword(userEmail, password);
 
-if (user) {
-  // add coookie and redirect
-  req.session.user_id = user.id; //set new username cookie
-  res.redirect("/urls");
-} else {
-  // 401 error
-  res.status(401).send("User not found/password incorrect");
-}
+  if (user) {
+    // add coookie and redirect
+    req.session.user_id = user.id; //set new username cookie
+    res.redirect("/urls");
+  } else {
+    // 401 error
+    res.status(401).send("User not found/password incorrect");
+    }
 });
-
-
 
 
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");  //clear username cookie
+  res.clearCookie("session");  //clear username cookie
+  res.clearCookie("session.sig");  //clear username cookie
   res.redirect("/login");
 });
+
+
 
 app.post("/urls/new", (req, res) => { //POST route when user clicks Submit button on the urls_new page to create a new short URL
   randomString = exportedFunctions.generateRandomString(); //declare a variable with a randomly generated string
@@ -230,6 +249,8 @@ app.post("/urls/new", (req, res) => { //POST route when user clicks Submit butto
   res.redirect("/urls");
 });
 
+
+
 app.post("/urls/:id", (req, res) => {
   let templateVars = {
     urls: [req.params.id, allURL[req.params.id]],
@@ -237,6 +258,8 @@ app.post("/urls/:id", (req, res) => {
     };
   res.render("urls_show", templateVars);
 });
+
+
 
 app.post("/urls/:id/update", (req, res) => { //POST route when user clicks Update button on the urls_show page
   allURL[req.params.id] = {
@@ -246,11 +269,12 @@ app.post("/urls/:id/update", (req, res) => { //POST route when user clicks Updat
   res.redirect("/urls"); //redirect to the /urls (home) page
 });
 
+
+
 app.post("/urls/:id/delete", (req, res) => { //POST route when a user clicks Delete button on the urls_index (home) page
   delete allURL[req.params.id]; //delete an entry from urlDatabase
   res.redirect("/urls"); //redirect to the /urls (home) page
 });
-
 
 
 
