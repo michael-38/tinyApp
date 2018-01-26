@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser('randomkey_a1b3c5'))
 app.use(cookieSession({
   name: 'session',
-  keys: [secretkey]
+  keys: 'secretkey',
   maxAge: 60 * 60 * 1000 // 1 hour
 }))
 
@@ -133,17 +133,17 @@ if (allUsers.hasOwnProperty(req.cookies.user_id)) {
 
 app.get("/urls/:id", (req, res) => {
   let thisUsersURL = urlsForUser(req.cookies.user_id)
-  let templateVars = {
-    urls: [req.params.id, thisUsersURL[req.params.id]],
-    user: thisUsersURL[req.cookies.user_id]
-  };
 
   for (item in thisUsersURL) {
     if(req.params.id === item) {
+    let templateVars = {
+      urls: [req.params.id, thisUsersURL[req.params.id]],
+      user: allUsers[req.cookies.user_id]
+    };
       res.render("urls_show", templateVars)
     }
     else {
-    res.status(403).send("unauthorized access")
+      res.status(403).send("unauthorized access")
     }
   }
 });
