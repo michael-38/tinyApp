@@ -93,7 +93,7 @@ app.get("/", (req, res) => {
   else {
     res.redirect("/login") //redirect to login page
   }
-})
+});
 
 
 
@@ -114,14 +114,14 @@ app.get("/urls", (req, res) => {
 
 app.get("/urls/new", (req, res) => {
 
-if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, render "urls_new page"
-    let templateVars = {
-    user: allUsers[req.session.user_id] //for rendering heading with correct user email on the "urls_new" page
-  };
-  res.render("urls_new", templateVars); //render the urls_new page
-} else {
-  res.redirect("/login");
-}
+  if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, render "urls_new page"
+      let templateVars = {
+      user: allUsers[req.session.user_id] //for rendering heading with correct user email on the "urls_new" page
+    };
+    res.render("urls_new", templateVars); //render the urls_new page
+  } else {
+    res.redirect("/login");
+    }
 });
 
 
@@ -155,24 +155,24 @@ app.get("/u/:shortURL", (req, res) => {
 
 
 app.get("/login", (req, res) => {
-if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, render home page (/urls)
-    res.redirect("/urls");
-  }
-  else {
-    res.render("urls_login")
-  }
-})
+  if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, render home page (/urls)
+      res.redirect("/urls");
+    }
+    else {
+      res.render("urls_login")
+    }
+});
 
 
 
 app.get("/register", (req, res) => {
-if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, render home page (/urls)
-    res.redirect("/urls");
-  }
-  else {
-    res.render("urls_register")
-  }
-})
+  if (allUsers.hasOwnProperty(req.session.user_id)) { //if user is logged in, render home page (/urls)
+      res.redirect("/urls");
+    }
+    else {
+      res.render("urls_register")
+    }
+});
 
 
 
