@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser('randomkey_a1b3c5'))
 app.use(cookieSession({
   name: 'session',
-  keys: 'secretkey',
+  keys: ['secretkey'],
   maxAge: 60 * 60 * 1000 // 1 hour
 }))
 
@@ -79,17 +79,14 @@ function urlsForUser(id) {
 
 
 
-
-
 /*
 GET Routes
 */
 
 
 
-
 app.get("/", (req, res) => {
-  if (allUsers.hasOwnProperty(req.cookies.user_id)) {
+  if (allUsers.hasOwnProperty(req.session.user_id)) {
     res.redirect("/urls");
   }
   else {
@@ -99,32 +96,28 @@ app.get("/", (req, res) => {
 
 
 app.get("/urls", (req, res) => {
-  if (allUsers.hasOwnProperty(req.cookies.user_id)) {
-      console.log("allowed access");
-      let thisUsersURL = urlsForUser(req.cookies.user_id)
-      let templateVars = {
+  console.log(allUsers);
+  if (allUsers.hasOwnProperty(req.session.user_id)) {
+    let thisUsersURL = urlsForUser(req.session.user_id)
+    let templateVars = {
         allURL: thisUsersURL,
-        user: allUsers[req.cookies.user_id]
-      }
-      console.log(templateVars);
-  res.render("urls_index", templateVars)
-  return;
-} else {
-  console.log("access denied")
-  res.status(403).send("unauthorized access");
-}
-})
+        user: allUsers[req.session.user_id]
+        }
+    res.render("urls_index", templateVars);
+  } else {
+    res.status(403).send("unauthorized access");
+  }
+});
 
 
 app.get("/urls/new", (req, res) => {
 
-if (allUsers.hasOwnProperty(req.cookies.user_id)) {
+if (allUsers.hasOwnProperty(req.session.user_id)) {
     let templateVars = {  ////declare a variable (which is an object)
     urls: [req.params.id,allURL[req.params.id]], // with key "urls" that contains an array that consists of the shortURL random string (:id) and its corresponding original URL in urlDatabase
-    user: allUsers[req.cookies.user_id]
+    user: allUsers[req.session.user_id]
   };
   res.render("urls_new", templateVars); //render the urls_new ejs/html page when a request to /urls/new is received
-  return;
 } else {
   res.redirect("/login");
 }
@@ -132,27 +125,23 @@ if (allUsers.hasOwnProperty(req.cookies.user_id)) {
 
 
 app.get("/urls/:id", (req, res) => {
-  let thisUsersURL = urlsForUser(req.cookies.user_id)
+  let thisUsersURL = urlsForUser(req.session.user_id)
 
   for (item in thisUsersURL) {
     if(req.params.id === item) {
     let templateVars = {
       urls: [req.params.id, thisUsersURL[req.params.id]],
-      user: allUsers[req.cookies.user_id]
+      user: allUsers[req.session.user_id]
     };
       res.render("urls_show", templateVars)
     }
-    else {
-      res.status(403).send("unauthorized access")
-    }
   }
+    res.status(403).send("unauthorized access")
 });
 
 
 
 app.get("/u/:shortURL", (req, res) => {
-  console.log(allURL);
-  console.log(req.params.shortURL);
   let longURL = allURL[req.params.shortURL].longURL; //declear a variable that references the urlDatabase (an object), with the key req.params.shortURL
   res.redirect(longURL); //redirect to the original URL
 });
@@ -193,8 +182,7 @@ app.post("/register", (req, res) => {
         password: bcrypt.hashSync(req.body.password, 10)
       }
   res.clearCookie("user_id");  //clear username cookie
-  res.cookie("user_id", randomID); //set new username cookie
-  console.log(allUsers);
+  req.session.user_id = randomID; //set new username cookie
   res.redirect("/urls");
     }
 });
@@ -216,7 +204,7 @@ const user = findUserVerifyPassword(userEmail, password);
 
 if (user) {
   // add coookie and redirect
-  res.cookie("user_id", user.id);
+  req.session.user_id = user.id; //set new username cookie
   res.redirect("/urls");
 } else {
   // 401 error
@@ -237,7 +225,7 @@ app.post("/urls/new", (req, res) => { //POST route when user clicks Submit butto
   randomString = exportedFunctions.generateRandomString(); //declare a variable with a randomly generated string
   allURL[randomString] = {
     longURL: req.body.longURL,
-    id: req.cookies.user_id
+    id: req.session.user_id
   };
   res.redirect("/urls");
 });
@@ -245,7 +233,7 @@ app.post("/urls/new", (req, res) => { //POST route when user clicks Submit butto
 app.post("/urls/:id", (req, res) => {
   let templateVars = {
     urls: [req.params.id, allURL[req.params.id]],
-    user: allUsers[req.cookies.user_id]
+    user: allUsers[req.session.user_id]
     };
   res.render("urls_show", templateVars);
 });
@@ -253,7 +241,7 @@ app.post("/urls/:id", (req, res) => {
 app.post("/urls/:id/update", (req, res) => { //POST route when user clicks Update button on the urls_show page
   allURL[req.params.id] = {
     longURL: req.body.updatedURL,
-    id: req.cookies.user_id
+    id: req.session.user_id
     }; //update the urlDatabase with the updatedURL a user inputted
   res.redirect("/urls"); //redirect to the /urls (home) page
 });
