@@ -81,8 +81,7 @@ GET Routes
 
 
 app.get("/", (req, res) => {
-  let current_user = req.cookies.user_id
-  if (current_user) {
+  if (allUsers.hasOwnProperty(req.cookies.user_id)) {
     res.redirect("/urls");
   }
   else {
@@ -108,6 +107,7 @@ app.get("/urls", (req, res) => {
 }
 })
 
+
 app.get("/urls/new", (req, res) => {
 
 if (allUsers.hasOwnProperty(req.cookies.user_id)) {
@@ -118,9 +118,21 @@ if (allUsers.hasOwnProperty(req.cookies.user_id)) {
   res.render("urls_new", templateVars); //render the urls_new ejs/html page when a request to /urls/new is received
   return;
 } else {
-  res.status(403).send("unauthorized access");
+  res.redirect("/login");
 }
 });
+
+
+app.get("/urls/:id", (req, res) => {
+  console.log(urlsForUser(req.cookies.user_id));
+  console.log(req.cookies.user_id);
+  if(req.cookies.user_id === urlsForUser(req.cookies.user_id).id) {
+    res.redirect("/urls:id");
+  } else {
+    res.status(403).send("unauthorized access");
+  }
+})
+
 
 app.get("/u/:shortURL", (req, res) => {
   console.log(allURL);
@@ -146,7 +158,9 @@ POST Routes
 app.post("/register", (req, res) => {
   let emailConflict = 0;
   for (accounts in allUsers) {
-    if (req.body.email === accounts.email) {
+    console.log("req.body.email: ", req.body.email);
+    console.log("accounts.email: ", allUsers[accounts].email);
+    if (req.body.email === allUsers[accounts].email) {
       emailConflict += 1;
     }
   }
